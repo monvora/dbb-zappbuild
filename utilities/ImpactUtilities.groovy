@@ -85,7 +85,26 @@ def createImpactBuildList() {
 				String impactSearch = props.getFileProperty('impactSearch', changedFile)
 				def impacts = findImpactedFiles(impactSearch, changedFile)
 				
-
+				// Check additional impacted files from MortgageApplication
+				PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:MortgageApplication/**.cpy")
+				Path path = FileSystems.getDefault().getPath(changedFile)
+				if (matcher.matches(path)) {
+				//if (changedFile =~ /MortgageApplication\/\S+\.cpy/) {
+				  println "############################# MATCH PATH ################################"
+				  
+				  // create logical dependency and query collections for logical files with this dependency
+					List<String> changedFileSegments = changedFile.split('/')
+					String lastChangedFileSegment = changedFileSegments[-1]
+					String subStringChangedFile = lastChangedFileSegment[0..-5]
+					String upperCaseSubStringChangedFile = subStringChangedFile.toUpperCase()
+					println "************ UPPERCASE CHANGED FILE = $upperCaseSubStringChangedFile !!!!!!!!!!!!"
+					LogicalDependency lFileDependency = new LogicalDependency("$upperCaseSubStringChangedFile","SYSLIB","COPY")
+					logicalChangedFileList = metadataStore.getCollection(props.applicationCollectionName).getLogicalFiles(lFileDependency)
+					println "********** LOGICAL FILE DEPENDENCY = $lFileDependency !!!!!!!!!!!"
+					println "********** LOGICAL CHANGED FILE LIST = $logicalChangedFileList !!!!!!!!"
+					
+				}
+				
 				impacts.each { impact ->
 					def impactFile = impact.getFile()
 					if (props.verbose) println "** Found impacted file $impactFile"
